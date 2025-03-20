@@ -23,6 +23,7 @@ class Savanah_Event {
 		add_action( 'pre_get_posts', array( $this, 'event_custom_orderby' ) );
 		add_action( 'wp_ajax_load_more_events', array( $this, 'load_more_events' ) );
 		add_action( 'wp_ajax_nopriv_load_more_events', array( $this, 'load_more_events' ) );
+		add_shortcode( 'savanah_events', array( $this, 'render_events_shortcode' ) );
 	}
 
 	/**
@@ -306,6 +307,86 @@ class Savanah_Event {
 	}
 	// Initialize Elementor integration
 	//
+
+
+	public function render_events_shortcode( $atts ) {
+		$atts = shortcode_atts(
+			array(
+				'posts_per_page' => 3,
+				'order_by'       => 'event_date',
+				'order'          => 'ASC',
+				'pagination'     => 'none', // Options: none, numbers, infinite
+			),
+			$atts
+		);
+
+		$paged = get_query_var( 'paged' ) ? get_query_var( 'paged' ) : 1;
+
+		$args = array(
+			'post_type'      => 'event',
+			'posts_per_page' => $atts['posts_per_page'],
+			'order'          => $atts['order'],
+			'paged'          => $paged,
+		);
+
+		// Set orderby based on selection
+		switch ( $atts['order_by'] ) {
+			case 'event_date':
+				$args['meta_key'] = '_event_date';
+				$args['orderby']  = 'meta_value';
+				break;
+			case 'post_date':
+				$args['orderby'] = 'date';
+				break;
+			case 'title':
+				$args['orderby'] = 'title';
+				break;
+		}
+
+		$query = new WP_Query( $args );
+		ob_start();
+
+		if ( $query->have_posts() ) :
+			?>
+		<div class="upcoming-events-widget" 
+			data-pagination="<?php echo esc_attr( $atts['pagination'] ); ?>"
+			data-max-pages="<?php echo esc_attr( $query->max_num_pages ); ?>"
+			data-posts-per-page="<?php echo esc_attr( $atts['posts_per_page'] ); ?>">
+			<div class="events-grid">
+					<?php
+					while ( $query->have_posts() ) :
+						$query->the_post();
+						include SAVANAH_EVENT_PLUGIN_DIR . 'templates/event-item.php';
+					endwhile;
+					?>
+			</div>
+
+				<?php if ( $atts['pagination'] === 'numbers' ) : ?>
+				<div class="events-pagination">
+					<?php
+					echo paginate_links(
+						array(
+							'total'     => $query->max_num_pages,
+							'current'   => $paged,
+							'prev_text' => __( '&laquo; Previous', 'savanah-event' ),
+							'next_text' => __( 'Next &raquo;', 'savanah-event' ),
+						)
+					);
+					?>
+				</div>
+			<?php endif; ?>
+
+				<?php if ( $atts['pagination'] === 'infinite' ) : ?>
+				<div class="events-loader" style="display: none;">
+					<div class="loader"></div>
+				</div>
+				<button class="load-more-btn">Load More Events</button>
+			<?php endif; ?>
+		</div>
+			<?php
+	endif;
+		wp_reset_postdata();
+
+		return ob_get_clean();
+	}
 }
-
-
