@@ -226,4 +226,7 @@ class Savanah_Event {
 			$query->set( 'orderby', 'meta_value' );
 		}
 	}
+
+	// Initialize Elementor integration
+	//
 }

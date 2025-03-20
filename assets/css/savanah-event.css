@@ -1,0 +1,61 @@
+.upcoming-events-widget {
+    display: grid;
+    gap: 30px;
+}
+
+.event-item {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 20px;
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.event-thumbnail img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.event-content {
+    padding: 20px;
+}
+
+.event-title {
+    margin: 0 0 15px;
+    font-size: 1.5em;
+}
+
+.event-meta {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 15px;
+    color: #666;
+}
+
+.event-meta span {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.event-meta i {
+    color: #2a9d8f;
+}
+
+.event-excerpt {
+    color: #666;
+    line-height: 1.6;
+}
+
+@media (max-width: 768px) {
+    .event-item {
+        grid-template-columns: 1fr;
+    }
+    
+    .event-thumbnail img {
+        height: 200px;
+    }
+}

@@ -9,7 +9,7 @@
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
-    exit;
+	exit;
 }
 
 define( 'SAVANAH_EVENT_VERSION', '1.0.0' );
@@ -21,7 +21,12 @@ require_once SAVANAH_EVENT_PLUGIN_DIR . 'includes/class-savanah-event.php';
 
 // Initialize the plugin
 function savanah_event_init() {
-    $plugin = new Savanah_Event();
-    $plugin->init();
+	$plugin = new Savanah_Event();
+	$plugin->init();
 }
 add_action( 'plugins_loaded', 'savanah_event_init' );
+
+if ( did_action( 'elementor/loaded' ) ) {
+	require_once SAVANAH_EVENT_PLUGIN_DIR . 'includes/elementor/elementor.php';
+	new Savanah_Event_Elementor();
+}
