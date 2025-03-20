@@ -39,15 +39,28 @@ class Upcoming_Events_Widget extends \Elementor\Widget_Base {
 		);
 
 		$this->add_control(
-			'pagination_type',
+			'order_by',
 			array(
-				'label'   => __( 'Pagination Type', 'savanah-event' ),
+				'label'   => __( 'Sort By', 'savanah-event' ),
 				'type'    => \Elementor\Controls_Manager::SELECT,
-				'default' => 'none',
+				'default' => 'event_date',
 				'options' => array(
-					'none'     => __( 'None', 'savanah-event' ),
-					'numbers'  => __( 'Numbers', 'savanah-event' ),
-					'infinite' => __( 'Infinite Scroll', 'savanah-event' ),
+					'event_date' => __( 'Event Date', 'savanah-event' ),
+					'post_date'  => __( 'Created Date', 'savanah-event' ),
+					'title'      => __( 'Title', 'savanah-event' ),
+				),
+			)
+		);
+
+		$this->add_control(
+			'order',
+			array(
+				'label'   => __( 'Order', 'savanah-event' ),
+				'type'    => \Elementor\Controls_Manager::SELECT,
+				'default' => 'ASC',
+				'options' => array(
+					'ASC'  => __( 'Ascending', 'savanah-event' ),
+					'DESC' => __( 'Descending', 'savanah-event' ),
 				),
 			)
 		);
@@ -103,24 +116,30 @@ class Upcoming_Events_Widget extends \Elementor\Widget_Base {
 		$args = array(
 			'post_type'      => 'event',
 			'posts_per_page' => $settings['posts_per_page'],
-			'meta_key'       => '_event_date',
-			'orderby'        => 'meta_value',
-			'order'          => 'ASC',
-			'paged'          => $paged,
-			'meta_query'     => array(
-				array(
-					'key'     => '_event_date',
-					'value'   => date( 'Y-m-d' ),
-					'compare' => '>=',
-					'type'    => 'DATE',
-				),
-			),
+			'order'          => $settings['order'],
 		);
+
+		// Set orderby based on selection
+		switch ( $settings['order_by'] ) {
+			case 'event_date':
+				$args['meta_key'] = '_event_date';
+				$args['orderby']  = 'meta_value';
+				break;
+			case 'post_date':
+				$args['orderby'] = 'date';
+				break;
+			case 'title':
+				$args['orderby'] = 'title';
+				break;
+		}
 
 		$query = new WP_Query( $args );
 
 		if ( $query->have_posts() ) : ?>
-			<div class="upcoming-events-widget" data-pagination="<?php echo esc_attr( $settings['pagination_type'] ); ?>">
+			<div class="upcoming-events-widget" 
+				data-pagination="<?php echo esc_attr( $settings['pagination_type'] ); ?>"
+				data-max-pages="<?php echo esc_attr( $query->max_num_pages ); ?>"
+				data-posts-per-page="<?php echo esc_attr( $settings['posts_per_page'] ); ?>">
 				<div class="events-grid">
 					<?php
 					while ( $query->have_posts() ) :
@@ -159,67 +178,12 @@ class Upcoming_Events_Widget extends \Elementor\Widget_Base {
 					<?php endwhile; ?>
 				</div>
 
-				<?php if ( $settings['pagination_type'] === 'numbers' ) : ?>
-					<div class="events-pagination">
-						<?php
-						echo paginate_links(
-							array(
-								'total'     => $query->max_num_pages,
-								'current'   => $paged,
-								'prev_text' => __( '&laquo; Previous', 'savanah-event' ),
-								'next_text' => __( 'Next &raquo;', 'savanah-event' ),
-							)
-						);
-						?>
-					</div>
-				<?php endif; ?>
-
 				<?php if ( $settings['pagination_type'] === 'infinite' ) : ?>
 					<div class="events-loader" style="display: none;">
 						<div class="loader"></div>
 					</div>
 				<?php endif; ?>
 			</div>
-
-			<?php if ( $settings['pagination_type'] === 'infinite' ) : ?>
-				<script>
-				jQuery(function($) {
-					var loading = false;
-					var page = 1;
-					var container = $('.upcoming-events-widget[data-pagination="infinite"]');
-					var grid = container.find('.events-grid');
-					var loader = container.find('.events-loader');
-					var maxPages = <?php echo $query->max_num_pages; ?>;
-
-					$(window).scroll(function() {
-						if (loading || page >= maxPages) return;
-
-						if ($(window).scrollTop() + $(window).height() > $(document).height() - 100) {
-							loading = true;
-							page++;
-							loader.show();
-
-							$.ajax({
-								url: '<?php echo admin_url( 'admin-ajax.php' ); ?>',
-								type: 'POST',
-								data: {
-									action: 'load_more_events',
-									page: page,
-									posts_per_page: <?php echo $settings['posts_per_page']; ?>
-								},
-								success: function(response) {
-									if (response) {
-										grid.append(response);
-										loading = false;
-									}
-									loader.hide();
-								}
-							});
-						}
-					});
-				});
-				</script>
-			<?php endif; ?>
 			<?php
 		endif;
 		wp_reset_postdata();

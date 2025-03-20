@@ -21,6 +21,8 @@ class Savanah_Event {
 		add_action( 'manage_event_posts_custom_column', array( $this, 'manage_event_columns' ), 10, 2 );
 		add_filter( 'manage_edit-event_sortable_columns', array( $this, 'make_event_columns_sortable' ) );
 		add_action( 'pre_get_posts', array( $this, 'event_custom_orderby' ) );
+		add_action( 'wp_ajax_load_more_events', array( $this, 'load_more_events' ) );
+		add_action( 'wp_ajax_nopriv_load_more_events', array( $this, 'load_more_events' ) );
 	}
 
 	/**
@@ -71,6 +73,23 @@ class Savanah_Event {
 			array(),
 			SAVANAH_EVENT_VERSION
 		);
+
+		wp_enqueue_script(
+			'savanah-event-infinite-scroll',
+			SAVANAH_EVENT_PLUGIN_URL . 'assets/js/infinite-scroll.js',
+			array( 'jquery' ),
+			SAVANAH_EVENT_VERSION,
+			true
+		);
+
+		wp_localize_script(
+			'savanah-event-infinite-scroll',
+			'savanah_event',
+			array(
+				'ajax_url' => admin_url( 'admin-ajax.php' ),
+				'nonce'    => wp_create_nonce( 'savanah_event_nonce' ),
+			)
+		);
 	}
 
 	/**
@@ -109,9 +128,13 @@ class Savanah_Event {
 	public function render_event_meta_box( $post ) {
 		wp_nonce_field( 'event_meta_box', 'event_meta_box_nonce' );
 
-		$event_date = get_post_meta( $post->ID, '_event_date', true );
-		$event_time = get_post_meta( $post->ID, '_event_time', true );
-		$event_type = get_post_meta( $post->ID, '_event_type', true );
+		$event_date     = get_post_meta( $post->ID, '_event_date', true );
+		$event_time     = get_post_meta( $post->ID, '_event_time', true );
+		$event_type     = get_post_meta( $post->ID, '_event_type', true );
+		$event_price    = get_post_meta( $post->ID, '_event_price', true );
+		$event_status   = get_post_meta( $post->ID, '_event_status', true );
+		$event_venue    = get_post_meta( $post->ID, '_event_venue', true );
+		$event_location = get_post_meta( $post->ID, '_event_location', true );
 		?>
 		<div class="event-meta-box">
 			<p>
@@ -134,6 +157,29 @@ class Savanah_Event {
 						<?php _e( 'Online', 'savanah-event' ); ?>
 					</option>
 				</select>
+			</p>
+			<p>
+				<label for="event_status"><?php _e( 'Event Status:', 'savanah-event' ); ?></label>
+				<input type="text" id="event_status" name="event_status" 
+					value="<?php echo esc_attr( $event_status ); ?>" class="widefat"
+					placeholder="e.g., Selling Fast, Sold Out">
+			</p>
+			<p>
+				<label for="event_price"><?php _e( 'Price Range:', 'savanah-event' ); ?></label>
+				<input type="text" id="event_price" name="event_price" 
+					value="<?php echo esc_attr( $event_price ); ?>" class="widefat"
+					placeholder="e.g., Free - $30, $25 - $80">
+			</p>
+			<p>
+				<label for="event_venue"><?php _e( 'Venue:', 'savanah-event' ); ?></label>
+				<input type="text" id="event_venue" name="event_venue" 
+					value="<?php echo esc_attr( $event_venue ); ?>" class="widefat">
+			</p>
+			<p>
+				<label for="event_location"><?php _e( 'Location:', 'savanah-event' ); ?></label>
+				<input type="text" id="event_location" name="event_location" 
+					value="<?php echo esc_attr( $event_location ); ?>" class="widefat"
+					placeholder="e.g., San Francisco, CA">
 			</p>
 		</div>
 		<?php
@@ -226,7 +272,40 @@ class Savanah_Event {
 			$query->set( 'orderby', 'meta_value' );
 		}
 	}
+	public function load_more_events() {
+		$page           = $_POST['page'];
+		$posts_per_page = $_POST['posts_per_page'];
 
+		$args = array(
+			'post_type'      => 'event',
+			'posts_per_page' => $posts_per_page,
+			'paged'          => $page,
+			'meta_key'       => '_event_date',
+			'orderby'        => 'meta_value',
+			'order'          => 'ASC',
+			'meta_query'     => array(
+				array(
+					'key'     => '_event_date',
+					'value'   => date( 'Y-m-d' ),
+					'compare' => '>=',
+					'type'    => 'DATE',
+				),
+			),
+		);
+
+		$query = new WP_Query( $args );
+
+		if ( $query->have_posts() ) {
+			while ( $query->have_posts() ) {
+				$query->the_post();
+				include SAVANAH_EVENT_PLUGIN_DIR . 'templates/event-item.php';
+			}
+		}
+
+		wp_die();
+	}
 	// Initialize Elementor integration
 	//
 }
+
+
