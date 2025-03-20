@@ -1,0 +1,21 @@
+.event-meta-box {
+    padding: 10px;
+}
+
+.event-meta-box p {
+    margin: 1em 0;
+}
+
+.event-meta-box label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.event-meta-box input[type="date"],
+.event-meta-box input[type="time"],
+.event-meta-box select {
+    width: 100%;
+    padding: 8px;
+    margin-top: 5px;
+}
