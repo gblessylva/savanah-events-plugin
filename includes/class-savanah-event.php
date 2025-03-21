@@ -204,22 +204,26 @@ class Savanah_Event {
 			return;
 		}
 
-		// Save event date
-		if ( isset( $_POST['event_date'] ) ) {
-			update_post_meta( $post_id, '_event_date', sanitize_text_field( $_POST['event_date'] ) );
-		}
+		$fields = array(
+			'event_date',
+			'event_time',
+			'event_type',
+			'event_status',
+			'event_price',
+			'event_venue',
+			'event_location',
+		);
 
-		// Save event time
-		if ( isset( $_POST['event_time'] ) ) {
-			update_post_meta( $post_id, '_event_time', sanitize_text_field( $_POST['event_time'] ) );
-		}
-
-		// Save event type
-		if ( isset( $_POST['event_type'] ) ) {
-			update_post_meta( $post_id, '_event_type', sanitize_text_field( $_POST['event_type'] ) );
+		foreach ( $fields as $field ) {
+			if ( isset( $_POST[ $field ] ) ) {
+				update_post_meta(
+					$post_id,
+					'_' . $field,
+					sanitize_text_field( $_POST[ $field ] )
+				);
+			}
 		}
 	}
-
 	public function add_event_columns( $columns ) {
 		$new_columns = array();
 		foreach ( $columns as $key => $value ) {
@@ -274,8 +278,10 @@ class Savanah_Event {
 		}
 	}
 	public function load_more_events() {
-		$page           = $_POST['page'];
-		$posts_per_page = $_POST['posts_per_page'];
+		check_ajax_referer( 'savanah_event_nonce', 'nonce' );
+
+		$page           = absint( $_POST['page'] );
+		$posts_per_page = absint( $_POST['posts_per_page'] );
 
 		$args = array(
 			'post_type'      => 'event',
@@ -315,17 +321,18 @@ class Savanah_Event {
 				'posts_per_page' => 3,
 				'order_by'       => 'event_date',
 				'order'          => 'ASC',
-				'pagination'     => 'none', // Options: none, numbers, infinite
+				'pagination'     => 'none',
 			),
-			$atts
+			$atts,
+			'savanah_events'
 		);
 
-		$paged = get_query_var( 'paged' ) ? get_query_var( 'paged' ) : 1;
+		$paged = absint( get_query_var( 'paged' ) ) ? absint( get_query_var( 'paged' ) ) : 1;
 
 		$args = array(
 			'post_type'      => 'event',
-			'posts_per_page' => $atts['posts_per_page'],
-			'order'          => $atts['order'],
+			'posts_per_page' => absint( $atts['posts_per_page'] ),
+			'order'          => sanitize_text_field( $atts['order'] ),
 			'paged'          => $paged,
 		);
 

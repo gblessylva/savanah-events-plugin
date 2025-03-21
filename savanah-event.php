@@ -16,16 +16,22 @@ define( 'SAVANAH_EVENT_VERSION', '1.0.0' );
 define( 'SAVANAH_EVENT_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'SAVANAH_EVENT_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 
-// Include plugin files
+// Include plugin files.
 require_once SAVANAH_EVENT_PLUGIN_DIR . 'includes/class-savanah-event.php';
 
-// Initialize the plugin
+
+/**
+ * Initialize the Savanah Event plugin
+ *
+ * @return void
+ */
 function savanah_event_init() {
 	$plugin = new Savanah_Event();
 	$plugin->init();
 }
 add_action( 'plugins_loaded', 'savanah_event_init' );
 
+// Load Elementor integration if Elementor is active.
 if ( did_action( 'elementor/loaded' ) ) {
 	require_once SAVANAH_EVENT_PLUGIN_DIR . 'includes/elementor/elementor.php';
 	new Savanah_Event_Elementor();
