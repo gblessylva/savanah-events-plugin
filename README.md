@@ -2,6 +2,9 @@
 
 A powerful WordPress event management plugin with Elementor integration and shortcode support.
 
+## Video Installation Guide and Usage
+[![Savanah Event Tutorial](https://img.youtube.com/vi/mXmR5nn0HVk/0.jpg)](https://youtu.be/mXmR5nn0HVk)
+
 ## Features
 
 - Custom event post type

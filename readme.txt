@@ -13,6 +13,8 @@ A powerful event management plugin with Elementor integration and shortcode supp
 
 Savanah Event is a versatile WordPress plugin that helps you manage and display events on your website. It features both Elementor widget and shortcode support, making it flexible for any WordPress setup.
 
+Video Tutorial: [Watch on YouTube](https://youtu.be/mXmR5nn0HVk)
+
 Features:
 * Custom event post type with meta fields
 * Event details including date, time, venue, and price

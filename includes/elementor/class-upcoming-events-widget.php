@@ -121,6 +121,20 @@ class Upcoming_Events_Widget extends \Elementor\Widget_Base {
 			)
 		);
 
+		$this->add_control(
+			'pagination_type',
+			array(
+				'label' => __( 'Pagination Type', 'savanah-event' ),
+				'type' => \Elementor\Controls_Manager::SELECT,
+				'default' => 'none',
+				'options' => array(
+					'none' => __( 'None', 'savanah-event' ),
+					'numbers' => __( 'Numbers', 'savanah-event' ),
+					'infinite' => __( 'Load More', 'savanah-event' ),
+				),
+			)
+		);
+
 		$this->end_controls_section();
 
 		// Style Section.
@@ -288,10 +302,24 @@ class Upcoming_Events_Widget extends \Elementor\Widget_Base {
 					<?php endwhile; ?>
 				</div>
 
+				<?php if ( $settings['pagination_type'] === 'numbers' ) : ?>
+					<div class="events-pagination">
+						<?php
+						echo paginate_links(array(
+							'total' => $query->max_num_pages,
+							'current' => $paged,
+							'prev_text' => __('&laquo; Previous', 'savanah-event'),
+							'next_text' => __('Next &raquo;', 'savanah-event'),
+						));
+						?>
+					</div>
+				<?php endif; ?>
+
 				<?php if ( $settings['pagination_type'] === 'infinite' ) : ?>
 					<div class="events-loader" style="display: none;">
 						<div class="loader"></div>
 					</div>
+					<button class="load-more-btn"><?php echo esc_html__('Load More Events', 'savanah-event'); ?></button>
 				<?php endif; ?>
 			</div>
 			</div>

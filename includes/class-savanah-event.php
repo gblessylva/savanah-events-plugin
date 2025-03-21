@@ -1,13 +1,25 @@
 <?php
 
 /**
- * Main plugin class
+ * Main class for handling event functionality.
+ *
+ * This class manages event post types, taxonomies, meta boxes,
+ * shortcodes and other core event features.
+ *
+ * @since 1.0.0
  */
 class Savanah_Event {
 
 
+
 	/**
-	 * Initialize the plugin
+	 * Initialize the plugin by registering hooks and filters.
+	 *
+	 * Sets up all the WordPress hooks and filters needed for the plugin functionality,
+	 * including post types, taxonomies, scripts, meta boxes, admin columns and shortcodes.
+	 *
+	 * @since 1.0.0
+	 * @return void
 	 */
 	public function init() {
 		add_action( 'init', array( $this, 'register_post_types' ) );
@@ -26,8 +38,15 @@ class Savanah_Event {
 		add_shortcode( 'savanah_events', array( $this, 'render_events_shortcode' ) );
 	}
 
+	
 	/**
-	 * Register custom post types
+	 * Register custom post types for events.
+	 *
+	 * Creates and registers the 'event' custom post type with appropriate
+	 * labels and settings for managing events in WordPress.
+	 *
+	 * @since 1.0.0
+	 * @return void
 	 */
 	public function register_post_types() {
 		register_post_type(
@@ -46,8 +65,15 @@ class Savanah_Event {
 		);
 	}
 
+	
 	/**
-	 * Register taxonomies
+	 * Register custom taxonomies for events.
+	 * 
+	 * Creates and registers the 'event_category' taxonomy to organize
+	 * and categorize events with hierarchical categories.
+	 *
+	 * @since 1.0.0
+	 * @return void
 	 */
 	public function register_taxonomies() {
 		register_taxonomy(
@@ -64,8 +90,15 @@ class Savanah_Event {
 		);
 	}
 
+	
 	/**
-	 * Enqueue frontend scripts and styles
+	 * Enqueue frontend scripts and styles.
+	 *
+	 * Registers and enqueues CSS and JavaScript files needed for the frontend
+	 * event display, including infinite scroll functionality and AJAX support.
+	 *
+	 * @since 1.0.0
+	 * @return void
 	 */
 	public function enqueue_scripts() {
 		wp_enqueue_style(
@@ -93,8 +126,16 @@ class Savanah_Event {
 		);
 	}
 
+	
+	
 	/**
-	 * Enqueue admin scripts and styles
+	 * Enqueue admin scripts and styles.
+	 *
+	 * Registers and enqueues CSS files needed for the WordPress admin
+	 * interface when managing events.
+	 *
+	 * @since 1.0.0
+	 * @return void
 	 */
 	public function admin_enqueue_scripts() {
 		wp_enqueue_style(
@@ -105,8 +146,20 @@ class Savanah_Event {
 		);
 	}
 
-	// Disable Gutenberg for events
-	public function disable_gutenberg( $use_block_editor, $post_type ) {
+	
+/**
+ * Disable Gutenberg editor for event post type.
+ *
+ * Filters whether to use the block editor for a given post type,
+ * returning false specifically for the 'event' post type to force
+ * the classic editor.
+ *
+ * @since 1.0.0
+ * @param bool   $use_block_editor Whether to use the block editor for this post type
+ * @param string $post_type        The post type being checked
+ * @return bool Whether to use the block editor
+ */
+public function disable_gutenberg( $use_block_editor, $post_type ) {
 		if ( $post_type === 'event' ) {
 			return false;
 		}
@@ -114,6 +167,15 @@ class Savanah_Event {
 	}
 
 	// Add meta boxes
+	/**
+	 * Add meta boxes for the event post type.
+	 *
+	 * Registers meta boxes to display event details like date, time,
+	 * venue and other event-specific information.
+	 *
+	 * @since 1.0.0
+	 * @return void
+	 */
 	public function add_event_meta_boxes() {
 		add_meta_box(
 			'event_details',
@@ -125,7 +187,16 @@ class Savanah_Event {
 		);
 	}
 
-	// Render meta box content
+	/**
+	 * Render the event meta box content.
+	 *
+	 * Displays form fields for entering event details like date, time,
+	 * venue, price and other event-specific information in the admin interface.
+	 *
+	 * @since 1.0.0
+	 * @param WP_Post $post The post object
+	 * @return void
+	 */
 	public function render_event_meta_box( $post ) {
 		wp_nonce_field( 'event_meta_box', 'event_meta_box_nonce' );
 
@@ -186,7 +257,17 @@ class Savanah_Event {
 		<?php
 	}
 
-	// Save meta box data
+	
+	/**
+	 * Save event meta data when a post is saved.
+	 *
+	 * Handles validation and saving of event-specific meta data like date, time,
+	 * venue, price and other details when an event post is saved or updated.
+	 *
+	 * @since 1.0.0
+	 * @param int $post_id The ID of the post being saved
+	 * @return void
+	 */
 	public function save_event_meta( $post_id ) {
 		if ( ! isset( $_POST['event_meta_box_nonce'] ) ) {
 			return;
@@ -224,6 +305,17 @@ class Savanah_Event {
 			}
 		}
 	}
+	
+	/**
+	 * Add custom columns to the events list table.
+	 *
+	 * Adds event-specific columns like date, time and type to the WordPress admin
+	 * events list table for better event management.
+	 *
+	 * @since 1.0.0
+	 * @param array $columns Array of column names
+	 * @return array Modified array of column names
+	 */
 	public function add_event_columns( $columns ) {
 		$new_columns = array();
 		foreach ( $columns as $key => $value ) {
@@ -237,15 +329,26 @@ class Savanah_Event {
 		return $new_columns;
 	}
 
+	/**
+	 * Manage content for custom event columns.
+	 *
+	 * Handles the display of event-specific data like date, time and type
+	 * in the custom columns of the WordPress admin events list table.
+	 *
+	 * @since 1.0.0
+	 * @param string $column  The name of the column to display
+	 * @param int    $post_id The ID of the current post
+	 * @return void
+	 */
 	public function manage_event_columns( $column, $post_id ) {
 		switch ( $column ) {
 			case 'event_date':
 				$date = get_post_meta( $post_id, '_event_date', true );
-				echo $date ? date_i18n( get_option( 'date_format' ), strtotime( $date ) ) : '—';
+				echo esc_html( $date ? date_i18n( get_option( 'date_format' ), strtotime( $date ) ) : '—' );
 				break;
 			case 'event_time':
 				$time = get_post_meta( $post_id, '_event_time', true );
-				echo $time ? date_i18n( get_option( 'time_format' ), strtotime( $time ) ) : '—';
+				echo esc_html( $time ? date_i18n( get_option( 'time_format' ), strtotime( $time ) ) : '—' );
 				break;
 			case 'event_type':
 				$type = get_post_meta( $post_id, '_event_type', true );
@@ -254,12 +357,32 @@ class Savanah_Event {
 		}
 	}
 
+	/**
+	 * Make event columns sortable in admin list table.
+	 *
+	 * Adds sorting capability to custom columns in the WordPress admin events
+	 * list table, specifically for event date and event type.
+	 *
+	 * @since 1.0.0
+	 * @param array $columns Array of sortable columns
+	 * @return array Modified array of sortable columns
+	 */
 	public function make_event_columns_sortable( $columns ) {
 		$columns['event_date'] = 'event_date';
 		$columns['event_type'] = 'event_type';
 		return $columns;
 	}
 
+	/**
+	 * Handle custom ordering for event columns.
+	 *
+	 * Modifies the main query when ordering by custom event columns like
+	 * event date and event type in the WordPress admin events list table.
+	 *
+	 * @since 1.0.0
+	 * @param WP_Query $query The WordPress query object
+	 * @return void
+	 */
 	public function event_custom_orderby( $query ) {
 		if ( ! is_admin() || ! $query->is_main_query() || $query->get( 'post_type' ) !== 'event' ) {
 			return;
@@ -277,6 +400,16 @@ class Savanah_Event {
 			$query->set( 'orderby', 'meta_value' );
 		}
 	}
+	/**
+	 * Handle AJAX request for loading more events.
+	 * 
+	 * Processes AJAX requests to load additional event posts for infinite scroll
+	 * pagination. Verifies nonce, queries events after current date, and returns
+	 * event template markup.
+	 *
+	 * @since 1.0.0
+	 * @return void
+	 */
 	public function load_more_events() {
 		check_ajax_referer( 'savanah_event_nonce', 'nonce' );
 
@@ -315,6 +448,17 @@ class Savanah_Event {
 	//
 
 
+	/**
+	 * Render the events shortcode output.
+	 *
+	 * Processes shortcode attributes and displays events in a grid layout with
+	 * optional pagination. Supports ordering by event date, post date or title
+	 * and different pagination types (none, numbers, infinite scroll).
+	 *
+	 * @since 1.0.0
+	 * @param array $atts Shortcode attributes
+	 * @return string HTML output of the events grid
+	 */
 	public function render_events_shortcode( $atts ) {
 		$atts = shortcode_atts(
 			array(
